@@ -3,6 +3,8 @@ jquery.ghostrelated
 
 This jQuery plugin displays a list of related posts for the Ghost blogging platform. 
 
+* Custom version that supports images.
+
 ## How it works
 
 Ghost Related parses your blogs rss feed and matches the current post with posts from your blog that have any tags in common. You will need to attach the plugin to an unordered or ordered list in your post.hbs template to output the related posts
