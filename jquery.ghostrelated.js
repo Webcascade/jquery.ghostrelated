@@ -1,7 +1,7 @@
 /*!
- * @package jquery.ghostrelated
- * @version 0.2.0
- * @Copyright (C) 2014 Dane Grant (danecando@gmail.com)
+ * @url https://github.com/Webcascade/jquery.ghostrelated
+ * @version 0.1.0
+ * @Copyright (C) 2015 Webcascade
  * @License MIT
  */
 ;(function($) {
@@ -9,9 +9,14 @@
     defaults = {
         feed: '/rss',
         titleClass: '.post-title',
-        tagsClass: '.post-meta',
-        limit: 5,
+        tagsClass: '.tags',
+        limit: 3,
         debug: false
+    };
+
+    function shuffle(o){
+        for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+        return o;
     }
 
 
@@ -21,7 +26,7 @@
         this.options = $.extend({}, defaults, options);
 
         this.parseRss();
-    };
+    }
 
     RelatedPosts.prototype.displayRelated = function(posts) {
 
@@ -30,27 +35,34 @@
 
         this._currentPostTags = this.getCurrentPostTags(this.options.tagsClass);
 
-        var related = this.matchByTag(this._currentPostTags, posts);
+        var related = this.matchByTag(shuffle(this._currentPostTags), shuffle(posts));
 
         related.forEach(function(post) {
             if (count < self.options.limit) {
-                $(self.element).append($('<li><a href="' + post.url + '">' + post.title + '</a></li>'));
+
+                var output = '<article class="post related">';
+                if (post.imageUrl) {
+                    output += '<figure class="post-image"><a href="' + post.url + '"><img src="' + post.imageUrl + '" alt="' + post.title + '" /></a></figure>';
+                }
+                output += '<h4><a href="' + post.url + '">' + post.title + '</a></h4></article>';
+
+                $(self.element).append($(output));
             }
             count++;
         });
 
-        if (count == 0) {
-            $(this.element).append($('<p>No related posts were found. ' +
-                'Check the <a href="/">index</a>.</p>'));
+        if (count === 0) {
+            // $(this.element).append($('<p>No related posts were found. ' +
+            //     'Check the <a href="/">index</a>.</p>'));
         }
     
     };
 
-    RelatedPosts.prototype.parseRss = function(pageNum, prevId, feeds) {
+    RelatedPosts.prototype.parseRss = function(pageNum, prevID, feed) {
 
         var page = pageNum || 1,
-            prevId = prevId || '',
-            feeds = feeds || [],
+            prevId = prevID || '',
+            feeds = feed || [],
             self = this;
 
         $.ajax({
@@ -111,6 +123,7 @@
     };
 
 
+
     RelatedPosts.prototype.getPosts = function(feeds) {
 
         var posts = [], items = [];
@@ -118,6 +131,10 @@
         feeds.forEach(function(feed) {
             items = $.merge(items, $(feed).find('item'));
         });
+
+        function returnTagText(elem) {
+            return $(elem).text();
+        }
 
         for (var i = 0; i < items.length; i++) {
 
@@ -129,9 +146,8 @@
                     title: item.find('title').text(),
                     url: item.find('link').text(),
                     content: item.find('description').text(),
-                    tags: $.map(item.find('category'), function(elem) {
-                        return $(elem).text();
-                    })
+                    imageUrl: item.find('media\\:content,content').attr('url'),
+                    tags: $.map(item.find('category'), returnTagText)
                 });
             }
         }
@@ -146,19 +162,20 @@
 
     RelatedPosts.prototype.matchByTag = function(postTags, posts) {
 
-        var matches = [];
+        var matches = [],
+            self = this;
 
-        posts.forEach(function(post) {
+        posts.forEach(function(post, i) {
 
             var beenAdded = false;
             post.tags.forEach(function(tag) {
-
                 postTags.forEach(function(postTag) {
 
                     if (postTag.toLowerCase() === tag.toLowerCase() && !beenAdded) {
                         matches.push(post);
                         beenAdded = true;
                     }
+
                 });
             });
         });
