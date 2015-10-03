@@ -21,10 +21,10 @@ Ghost Related parses your blogs rss feed and matches the current post with posts
 <script type="text/javascript" src="/assets/js/main.js"></script>
 <script type="text/javascript" src="/assets/js/ghostrelated.min.js"></script>
 
-3. Add an ordered or unordered list with a class identifier (related-posts is the default class identifier) in your post.hbs template file. 
+3. The script adds article elements with the class of "post related" to the parent element. 
 ```html
-    <ul class="related-posts">
-    </ul>
+    <div class="related-posts">
+    </div>
 </footer>
 {{/post}}
 ```
